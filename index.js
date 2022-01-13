@@ -9,14 +9,16 @@ const resolve = moduleId => {
 	} catch (_) {}
 };
 
-const clear = moduleId => {
+const clear = (moduleId, options = {}) => {
+	const { regex } = options;
+
 	if (typeof moduleId !== 'string') {
 		throw new TypeError(`Expected a \`string\`, got \`${typeof moduleId}\``);
 	}
 
 	const filePath = resolve(moduleId);
 
-	if (!filePath) {
+	if (!filePath || (regex && !regex.test(filePath))) {
 		return;
 	}
 
@@ -33,13 +35,19 @@ const clear = moduleId => {
 
 	// Remove all descendants from cache as well
 	if (require.cache[filePath]) {
-		const children = require.cache[filePath].children.map(child => child.id);
+		let children = require.cache[filePath].children.map(child => child.id);
+
+		// Filter out children not matching regex (if provided)
+		children = children.filter(moduleId => {
+			const modulePath = resolve(moduleId);
+			return !regex || regex.test(modulePath);
+		});
 
 		// Delete module from cache
 		delete require.cache[filePath];
 
 		for (const id of children) {
-			clear(id);
+			clear(id, options);
 		}
 	}
 };
