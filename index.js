@@ -3,9 +3,11 @@ const path = require('path');
 const resolveFrom = require('resolve-from');
 const parentModule = require('parent-module');
 
-const resolve = moduleId => {
+const resolve = (moduleId, options = {}) => {
+	const basePath = options.basePath || path.dirname(parentModule(__filename));
+
 	try {
-		return resolveFrom(path.dirname(parentModule(__filename)), moduleId);
+		return resolveFrom(basePath, moduleId);
 	} catch (_) {}
 };
 
@@ -16,7 +18,7 @@ const clear = (moduleId, options = {}) => {
 		throw new TypeError(`Expected a \`string\`, got \`${typeof moduleId}\``);
 	}
 
-	const filePath = resolve(moduleId);
+	const filePath = resolve(moduleId, options);
 
 	if (!filePath || (regex && !regex.test(filePath))) {
 		return;
@@ -39,7 +41,7 @@ const clear = (moduleId, options = {}) => {
 
 		// Filter out children not matching regex (if provided)
 		children = children.filter(moduleId => {
-			const modulePath = resolve(moduleId);
+			const modulePath = resolve(moduleId, options);
 			return !regex || regex.test(modulePath);
 		});
 
