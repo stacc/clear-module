@@ -54,10 +54,15 @@ const clear = (moduleId, options = {}) => {
 	}
 };
 
-clear.all = () => {
+clear.all = (options = {}) => {
+	const { regex } = options;
 	const directory = path.dirname(parentModule(__filename));
 
 	for (const moduleId of Object.keys(require.cache)) {
+		if (regex && !regex.test(moduleId)) {
+			continue;
+		}
+
 		delete require.cache[resolveFrom(directory, moduleId)];
 	}
 };
