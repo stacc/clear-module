@@ -1,6 +1,6 @@
 {
 	"name": "@stacc/clear-module",
-	"version": "4.2.0",
+	"version": "4.3.0",
 	"description": "Clear a module from the cache",
 	"license": "MIT",
 	"repository": "stacc/clear-module",
