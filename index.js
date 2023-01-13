@@ -12,7 +12,7 @@ const resolve = (moduleId, options = {}) => {
 };
 
 const clear = (moduleId, options = {}) => {
-	const { regex } = options;
+	const { regex, isExclusiveFilter = false } = options;
 
 	if (typeof moduleId !== 'string') {
 		throw new TypeError(`Expected a \`string\`, got \`${typeof moduleId}\``);
@@ -40,6 +40,15 @@ const clear = (moduleId, options = {}) => {
 		let children = require.cache[filePath].children.map(child => child.id);
 
 		// Filter out children not matching regex (if provided)
+		if (regex) {
+			children = children.filter(moduleId => {
+				const modulePath = resolve(moduleId, options);
+				const moduleMatches = regex.test(modulePath);
+				return isExclusiveFilter ? !moduleMatches : moduleMatches;
+			});
+		}
+
+		// Filter out children not matching regex (if provided)
 		children = children.filter(moduleId => {
 			const modulePath = resolve(moduleId, options);
 			return !regex || regex.test(modulePath);
@@ -55,12 +64,17 @@ const clear = (moduleId, options = {}) => {
 };
 
 clear.all = (options = {}) => {
-	const { regex } = options;
+	const { regex, isExclusiveFilter = false } = options;
 	const directory = path.dirname(parentModule(__filename));
 
 	for (const moduleId of Object.keys(require.cache)) {
-		if (regex && !regex.test(moduleId)) {
-			continue;
+		if (regex) {
+			const moduleMatches = regex.test(moduleId);
+			const shouldSkipModule = isExclusiveFilter ? moduleMatches : !moduleMatches;
+
+			if (shouldSkipModule) {
+				continue;
+			}
 		}
 
 		delete require.cache[resolveFrom(directory, moduleId)];
