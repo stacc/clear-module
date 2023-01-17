@@ -20,8 +20,17 @@ const clear = (moduleId, options = {}) => {
 
 	const filePath = resolve(moduleId, options);
 
-	if (!filePath || (regex && !regex.test(filePath))) {
-		return;
+	if (!filePath) {
+		return
+	}
+
+	if (regex) {
+		const moduleMatches = regex.test(filePath);
+		const shouldSkipModule = isExclusiveFilter ? moduleMatches : !moduleMatches;
+
+		if (shouldSkipModule) {
+			return;
+		}
 	}
 
 	// Delete itself from module parent
@@ -47,12 +56,6 @@ const clear = (moduleId, options = {}) => {
 				return isExclusiveFilter ? !moduleMatches : moduleMatches;
 			});
 		}
-
-		// Filter out children not matching regex (if provided)
-		children = children.filter(moduleId => {
-			const modulePath = resolve(moduleId, options);
-			return !regex || regex.test(modulePath);
-		});
 
 		// Delete module from cache
 		delete require.cache[filePath];
