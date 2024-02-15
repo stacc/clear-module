@@ -1,6 +1,6 @@
 'use strict';
 const path = require('path');
-const resolveFrom = require('resolve-from');
+const resolveFrom = require('resolve-from').silent;
 const parentModule = require('parent-module');
 
 const resolve = (moduleId, options = {}) => {
